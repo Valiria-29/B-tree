@@ -1,0 +1,11 @@
+C:\Users\лвщ\OneDrive\Рабочий стол\Курсовая работа\BtreeLib\Console\bin\Debug\Console.exe.config
+C:\Users\лвщ\OneDrive\Рабочий стол\Курсовая работа\BtreeLib\Console\bin\Debug\Console.exe
+C:\Users\лвщ\OneDrive\Рабочий стол\Курсовая работа\BtreeLib\Console\bin\Debug\Console.pdb
+C:\Users\лвщ\OneDrive\Рабочий стол\Курсовая работа\BtreeLib\Console\bin\Debug\BtreeLib.dll
+C:\Users\лвщ\OneDrive\Рабочий стол\Курсовая работа\BtreeLib\Console\bin\Debug\BtreeLib.pdb
+C:\Users\лвщ\OneDrive\Рабочий стол\Курсовая работа\BtreeLib\Console\obj\Debug\Console.csproj.AssemblyReference.cache
+C:\Users\лвщ\OneDrive\Рабочий стол\Курсовая работа\BtreeLib\Console\obj\Debug\Console.csproj.SuggestedBindingRedirects.cache
+C:\Users\лвщ\OneDrive\Рабочий стол\Курсовая работа\BtreeLib\Console\obj\Debug\Console.csproj.CoreCompileInputs.cache
+C:\Users\лвщ\OneDrive\Рабочий стол\Курсовая работа\BtreeLib\Console\obj\Debug\Console.csproj.CopyComplete
+C:\Users\лвщ\OneDrive\Рабочий стол\Курсовая работа\BtreeLib\Console\obj\Debug\Console.exe
+C:\Users\лвщ\OneDrive\Рабочий стол\Курсовая работа\BtreeLib\Console\obj\Debug\Console.pdb

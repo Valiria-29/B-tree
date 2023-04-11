@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BtreeLib", "BtreeLib\BtreeLib.csproj", "{307B019F-FE43-455F-984C-8C6CC30E6406}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Console", "Console\Console.csproj", "{47ABC8CC-A650-4BAC-8B94-B257E191B7DE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BtreeUnitTest", "BtreeUnitTest\BtreeUnitTest.csproj", "{85CA4014-ED19-47A8-A7E8-F6596EF724B4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{307B019F-FE43-455F-984C-8C6CC30E6406}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{307B019F-FE43-455F-984C-8C6CC30E6406}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{307B019F-FE43-455F-984C-8C6CC30E6406}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{307B019F-FE43-455F-984C-8C6CC30E6406}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47ABC8CC-A650-4BAC-8B94-B257E191B7DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47ABC8CC-A650-4BAC-8B94-B257E191B7DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47ABC8CC-A650-4BAC-8B94-B257E191B7DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47ABC8CC-A650-4BAC-8B94-B257E191B7DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{85CA4014-ED19-47A8-A7E8-F6596EF724B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85CA4014-ED19-47A8-A7E8-F6596EF724B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85CA4014-ED19-47A8-A7E8-F6596EF724B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85CA4014-ED19-47A8-A7E8-F6596EF724B4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AD0CB7F7-0F5D-4E76-9E3C-4E4391898236}
+	EndGlobalSection
+EndGlobal

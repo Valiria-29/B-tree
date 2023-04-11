@@ -1,0 +1,6 @@
+C:\Users\лвщ\OneDrive\Рабочий стол\Курсовая работа\BtreeLib\BtreeLib\obj\Debug\BtreeLib.csproj.AssemblyReference.cache
+C:\Users\лвщ\OneDrive\Рабочий стол\Курсовая работа\BtreeLib\BtreeLib\obj\Debug\BtreeLib.csproj.CoreCompileInputs.cache
+C:\Users\лвщ\OneDrive\Рабочий стол\Курсовая работа\BtreeLib\BtreeLib\bin\Debug\BtreeLib.dll
+C:\Users\лвщ\OneDrive\Рабочий стол\Курсовая работа\BtreeLib\BtreeLib\bin\Debug\BtreeLib.pdb
+C:\Users\лвщ\OneDrive\Рабочий стол\Курсовая работа\BtreeLib\BtreeLib\obj\Debug\BtreeLib.dll
+C:\Users\лвщ\OneDrive\Рабочий стол\Курсовая работа\BtreeLib\BtreeLib\obj\Debug\BtreeLib.pdb
