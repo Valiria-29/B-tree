@@ -29,21 +29,27 @@ namespace BtreeLib
             }
             var currentPage = _root;
             int i = 0;
-            while ( i !=currentPage.KeyCount) 
+            while (i != currentPage.KeyCount)
             {
-                if (findKey > currentPage[i])
+                while (findKey > currentPage[i]) //находим нужную дочернюю страницу 
                 {
                     i++;
                 }
-                if (findKey == currentPage[i])
+                if ((currentPage[i]!=0) && (findKey == currentPage[i])) // если сразу нашли ключ, то все хорошо
                 {
                     return true;
                 }
-                if (currentPage.IsLeaf)
+                if (currentPage.IsLeaf) // если прошли при этом все страницу - лист, то элемента нет
                 {
                     return false;
                 }
-                else
+            
+                if (i==currentPage.KeyCount)  //если нужно перейти на последнюю дочернюю страницу
+                {
+                    currentPage = currentPage._child[currentPage.KeyCount];
+                    i = 0;
+                }
+                else //иначе спускаемся на предпоследнюю дочернюю и ищем снова
                 {
                     currentPage = currentPage._child[i];
                     i = 0;
@@ -52,6 +58,61 @@ namespace BtreeLib
             return false;
         }
 
+
+
+       
+
+        private void SplitPage( Page fullpage)
+        {
+            //находим средний элемент, который уйдет наверх
+            var middleKey = fullpage[t-1];
+            if (fullpage==_root) //для корня необходимо выполнить разделение только один раз
+            {
+                //в новый корень запишем только middleKey
+                _root = new Page(false, t);
+                _root[0] = middleKey;
+                fullpage[t-1] = 0;  //сотрем его из старого места
+                var RightPage = new Page(true, t);
+                for (int i=0;i<t-1;i++)       //добавим еще одну страницу и запишем в нее все элементы правее среднего, при этом удалив их из старой страницы
+                {
+                    RightPage[i] = fullpage[i + t];
+                    fullpage[i + t] = 0;
+                }
+                //настроим ссылки от нового корня
+                _root._child[0] = fullpage;
+                _root._child[1] =RightPage;
+            }
+            else
+            {
+                var RightPage = new Page(true, t); //добавим еще одну страницу и запишем в нее все элементы правее среднего, при этом удалив их из старой страницы
+                for (int i = 0; i < t-1; i++)
+                {
+                    RightPage[i] = fullpage[i + t];
+                    fullpage[i + t] = 0;
+                }
+                var Parent = fullpage._parent;
+                //найдем среди ключей родителя нужно место для вставки middleKey
+                int j = 0;
+                while ((middleKey > Parent[j]) && (j<Parent.KeyCount))
+                {
+                    j++;
+                }
+                //передвинем все элементы до места вставки на один вправо, чтобы освободить место для вставки middleKey
+                for (int i=Parent.KeyCount; i>j;i--)
+                {
+                    Parent[i] = Parent[i - 1];
+                }
+                //вставим его при этом удалив в старой странице
+                Parent[j] = middleKey;
+                fullpage[t-1] = 0;
+                //добвим ссылку на новую RightPage
+                Parent._child[j+1]=RightPage;
+                if (Parent.KeyCount==2*t-1) //если опять нужно разделить страницу
+                {
+                    SplitPage(Parent);
+                }                
+            }
+        }
         
     }
 }
