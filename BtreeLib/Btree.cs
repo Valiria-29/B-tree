@@ -58,9 +58,42 @@ namespace BtreeLib
             return false;
         }
 
+        public void Add(int addKey)
+        {
+            var currentPage = _root;
+            int i = 0;
+            //нашли нужное место для вставки или для перехода на нужную дочернюю страницу
+            while (i != currentPage.KeyCount)
+            {
+                while (currentPage[i] < addKey)
+                {
+                    i++;
+                }
+                //если это лист, то сдвигаем все элементы справа на один и вставляем addKey
+                if (currentPage.IsLeaf)
+                {
+                    for (int j = currentPage.KeyCount; j > i; j--)
+                    {
+                        currentPage[j] = currentPage[j - 1];
+                    }
+                    currentPage[i] = addKey;
+                    currentPage.KeyCount++;
+                }
+                //иначе переходим на дочернюю страницу и начинаем поиск на ней
+                else
+                {
+                    currentPage = currentPage._child[i];
+                    i = 0;
+                }
+            }
+            //после добавления элемента проверяем страницу на заполненность
+            if (currentPage.KeyCount == 2 * t - 1)
+            {
+                SplitPage(currentPage);
+            }
+        }
 
 
-       
 
         private void SplitPage( Page fullpage)
         {
