@@ -6,8 +6,14 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BtreeLib", "BtreeLib\BtreeLib.csproj", "{307B019F-FE43-455F-984C-8C6CC30E6406}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Console", "Console\Console.csproj", "{47ABC8CC-A650-4BAC-8B94-B257E191B7DE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{307B019F-FE43-455F-984C-8C6CC30E6406} = {307B019F-FE43-455F-984C-8C6CC30E6406}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BtreeUnitTest", "BtreeUnitTest\BtreeUnitTest.csproj", "{85CA4014-ED19-47A8-A7E8-F6596EF724B4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{307B019F-FE43-455F-984C-8C6CC30E6406} = {307B019F-FE43-455F-984C-8C6CC30E6406}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

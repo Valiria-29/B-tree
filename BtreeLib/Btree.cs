@@ -12,13 +12,13 @@ namespace BtreeLib
     {
         public int t;
         private Page _root;
-        public int Count { get; private set; }
+        public int Count;
 
         public Btree(int t)
         {
             this.t = t;
             _root = new Page(true, t);
-            Count = 0;
+            
         }
 
         public bool Find(int findKey)
@@ -60,12 +60,13 @@ namespace BtreeLib
 
         public void Add(int addKey)
         {
+            
             var currentPage = _root;
             int i = 0;
             //нашли нужное место для вставки или для перехода на нужную дочернюю страницу
-            while (i != currentPage.KeyCount)
+            while (i <= currentPage.KeyCount)
             {
-                while (currentPage[i] < addKey)
+                while ((currentPage[i] != 0) && (currentPage[i] < addKey))
                 {
                     i++;
                 }
@@ -78,12 +79,17 @@ namespace BtreeLib
                     }
                     currentPage[i] = addKey;
                     currentPage.KeyCount++;
+                    Count++;
+                    break;
                 }
                 //иначе переходим на дочернюю страницу и начинаем поиск на ней
                 else
                 {
+                    var parentreference = currentPage;
                     currentPage = currentPage._child[i];
+                    currentPage._parent = parentreference;
                     i = 0;
+
                 }
             }
             //после добавления элемента проверяем страницу на заполненность
@@ -104,12 +110,18 @@ namespace BtreeLib
                 //в новый корень запишем только middleKey
                 _root = new Page(false, t);
                 _root[0] = middleKey;
-                fullpage[t-1] = 0;  //сотрем его из старого места
+                _root.KeyCount++;
+                fullpage[t-1] = 0;   //сотрем его из старого места
+                fullpage.KeyCount--;                  
                 var RightPage = new Page(true, t);
+                fullpage._parent = _root;
+                RightPage._parent= _root;
                 for (int i=0;i<t-1;i++)       //добавим еще одну страницу и запишем в нее все элементы правее среднего, при этом удалив их из старой страницы
                 {
                     RightPage[i] = fullpage[i + t];
+                    RightPage.KeyCount++;
                     fullpage[i + t] = 0;
+                    fullpage.KeyCount--;
                 }
                 //настроим ссылки от нового корня
                 _root._child[0] = fullpage;
@@ -118,10 +130,13 @@ namespace BtreeLib
             else
             {
                 var RightPage = new Page(true, t); //добавим еще одну страницу и запишем в нее все элементы правее среднего, при этом удалив их из старой страницы
+                RightPage._parent = fullpage._parent;
                 for (int i = 0; i < t-1; i++)
                 {
                     RightPage[i] = fullpage[i + t];
+                    RightPage.KeyCount++;
                     fullpage[i + t] = 0;
+                    fullpage.KeyCount--;
                 }
                 var Parent = fullpage._parent;
                 //найдем среди ключей родителя нужно место для вставки middleKey
@@ -137,7 +152,9 @@ namespace BtreeLib
                 }
                 //вставим его при этом удалив в старой странице
                 Parent[j] = middleKey;
+                Parent.KeyCount++;
                 fullpage[t-1] = 0;
+                fullpage.KeyCount--;
                 //добвим ссылку на новую RightPage
                 Parent._child[j+1]=RightPage;
                 if (Parent.KeyCount==2*t-1) //если опять нужно разделить страницу
