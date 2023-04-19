@@ -25,7 +25,7 @@ namespace BtreeUnitTest
         public void BtreeDegreeIsRight()
         {
             Btree btree = new Btree(3);
-            Assert.AreEqual(3, btree.t);
+            Assert.AreEqual(3, btree.MinTreeDegree);
         }
 
         [TestMethod]

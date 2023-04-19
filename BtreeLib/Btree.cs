@@ -10,13 +10,13 @@ namespace BtreeLib
 {
     public class Btree 
     {
-        public int t;
+        public int MinTreeDegree;
         private Page _root;
         public int Count;
 
         public Btree(int t)
         {
-            this.t = t;
+            this.MinTreeDegree = t;
             _root = new Page(true, t);
             
         }
@@ -93,7 +93,7 @@ namespace BtreeLib
                 }
             }
             //после добавления элемента проверяем страницу на заполненность
-            if (currentPage.KeyCount == 2 * t - 1)
+            if (currentPage.KeyCount == 2 * MinTreeDegree - 1)
             {
                 SplitPage(currentPage);
             }
@@ -104,23 +104,23 @@ namespace BtreeLib
         private void SplitPage( Page fullpage)
         {
             //находим средний элемент, который уйдет наверх
-            var middleKey = fullpage[t-1];
+            var middleKey = fullpage[MinTreeDegree-1];
             if (fullpage==_root) //для корня необходимо выполнить разделение только один раз
             {
                 //в новый корень запишем только middleKey
-                _root = new Page(false, t);
+                _root = new Page(false, MinTreeDegree);
                 _root[0] = middleKey;
                 _root.KeyCount++;
-                fullpage[t-1] = 0;   //сотрем его из старого места
+                fullpage[MinTreeDegree-1] = 0;   //сотрем его из старого места
                 fullpage.KeyCount--;                  
-                var RightPage = new Page(true, t);
+                var RightPage = new Page(true, MinTreeDegree);
                 fullpage._parent = _root;
                 RightPage._parent= _root;
-                for (int i=0;i<t-1;i++)       //добавим еще одну страницу и запишем в нее все элементы правее среднего, при этом удалив их из старой страницы
+                for (int i=0;i<MinTreeDegree-1;i++)       //добавим еще одну страницу и запишем в нее все элементы правее среднего, при этом удалив их из старой страницы
                 {
-                    RightPage[i] = fullpage[i + t];
+                    RightPage[i] = fullpage[i + MinTreeDegree];
                     RightPage.KeyCount++;
-                    fullpage[i + t] = 0;
+                    fullpage[i + MinTreeDegree] = 0;
                     fullpage.KeyCount--;
                 }
                 //настроим ссылки от нового корня
@@ -129,13 +129,13 @@ namespace BtreeLib
             }
             else
             {
-                var RightPage = new Page(true, t); //добавим еще одну страницу и запишем в нее все элементы правее среднего, при этом удалив их из старой страницы
+                var RightPage = new Page(true, MinTreeDegree); //добавим еще одну страницу и запишем в нее все элементы правее среднего, при этом удалив их из старой страницы
                 RightPage._parent = fullpage._parent;
-                for (int i = 0; i < t-1; i++)
+                for (int i = 0; i < MinTreeDegree-1; i++)
                 {
-                    RightPage[i] = fullpage[i + t];
+                    RightPage[i] = fullpage[i + MinTreeDegree];
                     RightPage.KeyCount++;
-                    fullpage[i + t] = 0;
+                    fullpage[i + MinTreeDegree] = 0;
                     fullpage.KeyCount--;
                 }
                 var Parent = fullpage._parent;
@@ -153,11 +153,11 @@ namespace BtreeLib
                 //вставим его при этом удалив в старой странице
                 Parent[j] = middleKey;
                 Parent.KeyCount++;
-                fullpage[t-1] = 0;
+                fullpage[MinTreeDegree-1] = 0;
                 fullpage.KeyCount--;
                 //добвим ссылку на новую RightPage
                 Parent._child[j+1]=RightPage;
-                if (Parent.KeyCount==2*t-1) //если опять нужно разделить страницу
+                if (Parent.KeyCount==2*MinTreeDegree-1) //если опять нужно разделить страницу
                 {
                     SplitPage(Parent);
                 }                
