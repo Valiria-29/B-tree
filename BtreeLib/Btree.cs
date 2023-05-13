@@ -8,20 +8,28 @@ using System.Threading.Tasks;
 
 namespace BtreeLib
 {
-    public class Btree 
+    public class Btree <T> where T : IComparable
     {
         public int MinTreeDegree;
-        private Page _root;
+        private Page<T> _root;
         public int Count;
 
-        public Btree(int t)
+        IComparer <T> _comparer;
+        public Btree(int minTreeDegree)
         {
-            this.MinTreeDegree = t;
-            _root = new Page(true, t);
+            this.MinTreeDegree = minTreeDegree;
+            _root = new Page<T>(true, minTreeDegree);
+            _comparer = Comparer<T>.Default;
             
         }
+        public Btree(int minTreeDegree, IComparer<T> comparer)
+        {
+            MinTreeDegree = minTreeDegree;
+            _root = new Page<T>(true, minTreeDegree);
+            _comparer = comparer;
+        }
 
-        public bool Find(int findKey)
+        public bool Find(T findKey)
         {
             if (_root==null)
             {
@@ -31,11 +39,11 @@ namespace BtreeLib
             int i = 0;
             while (i != currentPage.KeyCount)
             {
-                while (findKey > currentPage[i]) //находим нужную дочернюю страницу 
+                while ( i<currentPage.KeyCount && _comparer.Compare(findKey, currentPage[i])>0 ) //находим нужную дочернюю страницу 
                 {
                     i++;
                 }
-                if ((currentPage[i]!=0) && (findKey == currentPage[i])) // если сразу нашли ключ, то все хорошо
+                if ((!currentPage[i].Equals(default(T))) && (_comparer.Compare(findKey ,currentPage[i])==0)) // если сразу нашли ключ, то все хорошо
                 {
                     return true;
                 }
@@ -58,7 +66,7 @@ namespace BtreeLib
             return false;
         }
 
-        public void Add(int addKey)
+        public void Add(T addKey)
         {
             
             var currentPage = _root;
@@ -66,7 +74,8 @@ namespace BtreeLib
             //нашли нужное место для вставки или для перехода на нужную дочернюю страницу
             while (i <= currentPage.KeyCount)
             {
-                while ((currentPage[i] != 0) && (currentPage[i] < addKey))
+
+                while (!currentPage[i].Equals(default(T)) && (_comparer.Compare(currentPage[i], addKey) < 0))
                 {
                     i++;
                 }
@@ -101,26 +110,26 @@ namespace BtreeLib
 
 
 
-        private void SplitPage( Page fullpage)
+        private void SplitPage( Page<T> fullpage)
         {
             //находим средний элемент, который уйдет наверх
             var middleKey = fullpage[MinTreeDegree-1];
             if (fullpage==_root) //для корня необходимо выполнить разделение только один раз
             {
                 //в новый корень запишем только middleKey
-                _root = new Page(false, MinTreeDegree);
+                _root = new Page<T>(false, MinTreeDegree);
                 _root[0] = middleKey;
                 _root.KeyCount++;
-                fullpage[MinTreeDegree-1] = 0;   //сотрем его из старого места
+                fullpage[MinTreeDegree - 1] = default(T);   //сотрем его из старого места
                 fullpage.KeyCount--;                  
-                var RightPage = new Page(true, MinTreeDegree);
+                var RightPage = new Page<T>(true, MinTreeDegree);
                 fullpage._parent = _root;
                 RightPage._parent= _root;
                 for (int i=0;i<MinTreeDegree-1;i++)       //добавим еще одну страницу и запишем в нее все элементы правее среднего, при этом удалив их из старой страницы
                 {
                     RightPage[i] = fullpage[i + MinTreeDegree];
                     RightPage.KeyCount++;
-                    fullpage[i + MinTreeDegree] = 0;
+                    fullpage[i + MinTreeDegree] = default(T);
                     fullpage.KeyCount--;
                 }
                 //настроим ссылки от нового корня
@@ -129,19 +138,19 @@ namespace BtreeLib
             }
             else
             {
-                var RightPage = new Page(true, MinTreeDegree); //добавим еще одну страницу и запишем в нее все элементы правее среднего, при этом удалив их из старой страницы
+                var RightPage = new Page<T>(true, MinTreeDegree); //добавим еще одну страницу и запишем в нее все элементы правее среднего, при этом удалив их из старой страницы
                 RightPage._parent = fullpage._parent;
                 for (int i = 0; i < MinTreeDegree-1; i++)
                 {
                     RightPage[i] = fullpage[i + MinTreeDegree];
                     RightPage.KeyCount++;
-                    fullpage[i + MinTreeDegree] = 0;
+                    fullpage[i + MinTreeDegree] = default(T);
                     fullpage.KeyCount--;
                 }
                 var Parent = fullpage._parent;
                 //найдем среди ключей родителя нужно место для вставки middleKey
                 int j = 0;
-                while ((middleKey > Parent[j]) && (j<Parent.KeyCount))
+                while ((_comparer.Compare(middleKey , Parent[j])>0) && (j<Parent.KeyCount))
                 {
                     j++;
                 }
@@ -153,7 +162,7 @@ namespace BtreeLib
                 //вставим его при этом удалив в старой странице
                 Parent[j] = middleKey;
                 Parent.KeyCount++;
-                fullpage[MinTreeDegree-1] = 0;
+                fullpage[MinTreeDegree-1] = default(T);
                 fullpage.KeyCount--;
                 //добвим ссылку на новую RightPage
                 Parent._child[j+1]=RightPage;
@@ -161,6 +170,39 @@ namespace BtreeLib
                 {
                     SplitPage(Parent);
                 }                
+            }
+        }
+
+
+        public int BinSearch<T> (Page<T> currentPage, T value) where T : IComparable
+        {
+            var left = 0;
+            var right = currentPage.KeyCount;
+            if (left== right)
+            {
+                return left;
+            }
+            while (true)
+            {
+                if (right - left == 1)
+                {
+                    if (currentPage[left].CompareTo(value) == 0)
+                        return left;
+                    if (currentPage[right].CompareTo(value) == 0)
+                        return right;
+                    return -1;
+                }
+                else
+                {
+                    var middle = left + (right - left) / 2;
+                    var comparisonResult = currentPage[middle].CompareTo(value);
+                    if (comparisonResult == 0)
+                        return middle;
+                    if (comparisonResult < 0)
+                        left = middle;
+                    if (comparisonResult > 0)
+                        right = middle;
+                }
             }
         }
         

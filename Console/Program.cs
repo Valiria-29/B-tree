@@ -11,11 +11,12 @@ namespace Console
     {
         static void Main(string[] args)
         {
-            Btree btree = new Btree(2);
+            Btree<int> btree = new Btree<int>(3);
             btree.Add(1);
             btree.Add(2);
             btree.Add(3);
            
+            
         }
     }
 }
