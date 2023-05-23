@@ -121,7 +121,7 @@ namespace BtreeLib
         }
 
 
-
+        #region [SplitPage]
         private void SplitPage( Page<T> fullpage)
         {
             //находим средний элемент, который уйдет наверх
@@ -184,8 +184,9 @@ namespace BtreeLib
                 }                
             }
         }
+        #endregion
 
-
+        #region [BinSearch]
         //public int BinSearch<T> (Page<T> currentPage, T value) where T : IComparable
         //{
         //    var left = 0;
@@ -217,26 +218,31 @@ namespace BtreeLib
         //        }
         //    }
         //}
-        
+        #endregion
+         
         public void Delete ( T deleteKey)
         {
             var (page, index) = Find(deleteKey);
             if (page.Equals(default(Page<T>)))
             {
                 //исключение что нет такого элемента в дереве
+                return;
             }
             else //если элемент в дереве нашелся, то проверяем где именно он находится
             {
                 if (page.IsLeaf)
                 {
-                    DeleteFromList( page, index );
+                    DeleteFromList(page, index );
                 }
                 else
                 {
-                    DeleteFromNode(deleteKey , page , index);
+                    //DeleteFromNode(deleteKey , page , index);
                 }
+               
             }
         }
+
+        #region [DeleteFromList]
         //метод удаления элемента с листа
         public void DeleteFromList( Page<T> page , int index)
         {
@@ -247,7 +253,7 @@ namespace BtreeLib
                 page.KeyCount--;
                 return;
             }
-            if (page.KeyCount - 1 >= MinTreeDegree-1) //если после удаления элементов на странице будет допустимое значение
+            if (page.KeyCount - 1 >= MinTreeDegree-1) //если после удаления элементов на странице будет допустимое значение(обычное удаление)
             {
                 ShiftKey(page, index);
                 Count--;
@@ -265,59 +271,141 @@ namespace BtreeLib
             }
 
         }
+        #endregion
+
+        #region [ShiftKey]
         //метод, который сдвигает все элементы, после удаляемого, на один влево
-        public void ShiftKey(Page<T> page , int index)
+        public void ShiftKey(Page<T> page , int deleteKeyIndex)
         {
-            for (int i = index; i < page.KeyCount-1; i++)
+            for (int i = deleteKeyIndex; i < page.KeyCount-1; i++)
             {
                 page[i] = page[i + 1];
             }
         }
+        #endregion
 
+        #region[BorrowFromNeighbor]
         public void BorrowFromNeighbor (Page<T> page, T deleteKey)
         {
-           //найдем родителя
-           var parentpage= page._parent;
-            int index = 0;
-            for (int i = 0; i < parentpage.KeyCount; i++)
+           //найдем  индекс родителя в родительской странице, чтобы перейти к соседям
+           var parentPage= page._parent;
+            int parentIndex = 0;
+            for (int i = 0; i < parentPage.KeyCount; i++)
             {
-                if (parentpage[i].CompareTo(deleteKey)>0)
+                if (parentPage[i].CompareTo(deleteKey)>0)
                 {
-                    index = i;
+                    parentIndex = i;
                     break;
                 }
             }
-            //если у правого соседа достаточно элементов чтобы поделиться
-            if (parentpage._child[index+1].KeyCount>MinTreeDegree)
+            Page<T> rightNeighborPage = null;
+            Page<T> leftNeighborPage = null;
+            if (parentIndex != 0)
             {
-                //поставим найденный элемент из родительской страницы на первое свободное место
-                page[page.KeyCount] = parentpage[index];
-                parentpage[index] = parentpage._child[index + 1][0]; //на его место поставим самого левого из правого соседа
-                //сдвинем в правом соседе все на один влево
-                ShiftKey(parentpage._child[index + 1], 0);
-                parentpage._child[index + 1].KeyCount--;
-                parentpage._child[index + 1][parentpage._child[index + 1].KeyCount] = default(T);
-
+                leftNeighborPage = parentPage._child[parentIndex - 1];
             }
-            //если у левого соседа достаточно элементов чтобы поделиться
-            if (parentpage._child[index].KeyCount > MinTreeDegree)
+            if (parentIndex != 2 * MinTreeDegree - 1)
             {
-                //поставим найденный элемент из родительской страницы на первое свободное место
-                page[page.KeyCount] = parentpage[index];
-                parentpage[index] = parentpage._child[index][parentpage._child[index].KeyCount-1]; //на его место поставим самого правого из левого соседа
-                //самый правый из левого соседа обнулим
-                parentpage._child[index][parentpage._child[index].KeyCount - 1]= default(T);
-                parentpage._child[index].KeyCount--;
+                rightNeighborPage = parentPage._child[parentIndex + 1];
             }
-            //если нужно объединять
-            else
+            //если правый сосед есть и у него достаточно элементов чтобы поделиться
+            if (rightNeighborPage!=null && rightNeighborPage.KeyCount > MinTreeDegree)
             {
-
+                BorrowFromRightNeighbor(page, rightNeighborPage, parentPage, parentIndex);
             }
+            //если левый сосед есть и у него достаточно элементов чтобы поделиться
+            if (leftNeighborPage!=null && leftNeighborPage.KeyCount > MinTreeDegree)
+            {
+                BorrowFromLeftNeighbor(page, leftNeighborPage, parentPage, parentIndex);
+            }
+            //если нужно объединять c правым соседом
+            if (rightNeighborPage != null)
+            {
+                UniteWhithRightNeighbors(page, rightNeighborPage, parentPage, parentIndex);
+                return;
+            }
+            //если нужно объединять c левым соседом
+            if (leftNeighborPage != null)
+            {
+                UniteWhithLeftNeighbors(page, leftNeighborPage, parentPage, parentIndex);
+            }    
+        }
+        #endregion
 
-           
-           
+        #region[BorrowFromNeighbor вспомогательные методы]
+        public void BorrowFromRightNeighbor (Page<T> page, Page<T> rightNeighborPage, Page<T> parentPage, int parentIndex )
+        {
+            ////поставим найденный элемент из родительской страницы на первое свободное место
+            page[page.KeyCount] = parentPage[parentIndex];
+            //на его место поставим самого левого из правого соседа
+            parentPage[parentIndex] = rightNeighborPage[0];
+            //сдвинем в правом соседе все на один влево
+            ShiftKey(rightNeighborPage, 0);
+            rightNeighborPage.KeyCount--;
+            rightNeighborPage[rightNeighborPage.KeyCount] = default(T);
         }
 
+        public void BorrowFromLeftNeighbor(Page<T> page, Page<T> leftNeighborPage, Page<T> parentPage, int parentIndex)
+        {
+            parentIndex = parentIndex - 1;
+            //сдвинем все элементы на странице на один вправо, чтобы освободить место для земены
+            for (int i =page.KeyCount; i>0; i--)
+            {
+                page[i] = page[i - 1]; 
+            }
+            ////поставим найденный элемент из родительской страницы на нулевое место
+            page[0] = parentPage[parentIndex];
+            //на его место поставим самого правого из левого соседа
+            parentPage[parentIndex] = leftNeighborPage[leftNeighborPage.KeyCount-1];
+            leftNeighborPage.KeyCount--;
+            leftNeighborPage[leftNeighborPage.KeyCount] = default(T);
+        }
+
+        public void UniteWhithRightNeighbors (Page<T> page , Page<T> rightNeighborPage, Page<T> parentPage, int parentIndex)
+        {
+
+            //переносим родителя  в конец page
+            page[page.KeyCount] = parentPage[parentIndex];
+            parentPage[parentIndex] = default(T);
+            page.KeyCount++;
+            //перенесем все элементы кроме одного из правого соседа в page
+            int rightPadeCount = rightNeighborPage.KeyCount;
+            for (int i=0;i< rightPadeCount-1; i++)
+            {
+                page[page.KeyCount] = rightNeighborPage[i];
+                rightNeighborPage[i] = default(T);
+                page.KeyCount++;
+                rightNeighborPage.KeyCount--;
+            }
+            //а этот оставшийся элемент поставим в parentPage
+            parentPage[parentIndex] = rightNeighborPage[rightNeighborPage.KeyCount-1];
+            rightNeighborPage[rightNeighborPage.KeyCount - 1]=default(T);
+            rightNeighborPage.KeyCount--;
+
+
+        }
+        public void UniteWhithLeftNeighbors(Page<T> page, Page<T> leftNeighborPage, Page<T> parentPage, int parentIndex)
+        {
+            int CountOfShiftKey = leftNeighborPage.KeyCount;
+            //перенесем все элементы на CountOfShiftKey вправо,чтобы освободить для них место
+            for ( int i=page.KeyCount-1;i>=0;i--)
+            {
+                page[page.KeyCount + CountOfShiftKey-1] = page[i];
+                page.KeyCount++;
+            }
+            //спускаем родителя 
+            page[CountOfShiftKey - 1] = parentPage[parentIndex];
+            // переносим все элементы кроме одного из левого соседа в Page
+            for (int i=0;i<CountOfShiftKey-1;i++)
+            {
+                page[i]=leftNeighborPage[i+1];
+                leftNeighborPage.KeyCount--;
+            }
+            //а этот оставшийся элемент поставим в parentPage
+            parentPage[parentIndex] = leftNeighborPage[0];
+            leftNeighborPage[0] = default;
+            leftNeighborPage.KeyCount--;
+        }
+        #endregion
     }
 }
