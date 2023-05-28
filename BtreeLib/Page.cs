@@ -11,7 +11,7 @@ namespace BtreeLib
         public int KeyCount;
         public bool IsLeaf;
         public T[] _keys;
-        public Page<T>[] _child { get; private set; }
+        public Page<T>[] _child { get;  set; }
         public Page<T> _parent;
 
         public Page(bool isLeaf, int t)
