@@ -224,10 +224,80 @@ namespace BtreeUnitTest
             Assert.AreEqual(false, btree.Contains(9));
             Assert.AreEqual(btree.Count, 4);
         }
+        [ExpectedException(typeof(Exception))]
+        public void DeleteFromRootToEmptyTree()
+        {
+            Btree<int> btree = new Btree<int>(2);
+            btree.Add(1);
+            btree.Add(7);
+            btree.Delete(1);
+            btree.Delete(7);
+            Assert.ThrowsException<Exception>(()=>btree.Contains(1));
+            Assert.ThrowsException<Exception>(() => btree.Contains(7));
+        }
+    }
+    [TestClass]
+    public class DeleteFromInternalNode
+    {
+        [TestMethod]
+        public void FindSubstituteKeyInLeftSubTreeIsCorrect()
+        {
+            Btree<int> btree = new Btree<int>(2);
+            btree.Add(1);
+            btree.Add(7);
+            btree.Add(9);
+            btree.Add(2);
+            btree.Add(3);
+            btree.Add(11);
+            btree.Add(12);
+            btree.Add(10);
+            btree.Delete(11);
+            Assert.AreEqual(false, btree.Contains(11));
+            Assert.AreEqual(btree.Count, 7);
 
-
-
-
+        }
+        [TestMethod]
+        public void FindSubstituteKeyInRightSubTreeIsCorrect()
+        {
+            Btree<int> btree = new Btree<int>(2);
+            btree.Add(1);
+            btree.Add(7);
+            btree.Add(9);
+            btree.Add(2);
+            btree.Add(3);
+            btree.Add(11);
+            btree.Add(12);
+            btree.Add(13);
+            btree.Delete(11);
+            Assert.AreEqual(false, btree.Contains(11));
+            Assert.AreEqual(btree.Count, 7);
+        }
+        [TestMethod]
+        public void UnionTwoPageIsCorrect()
+        {
+            Btree<int> btree = new Btree<int>(2);
+            btree.Add(1);
+            btree.Add(7);
+            btree.Add(9);
+            btree.Add(2);
+            btree.Add(3);
+            btree.Add(11);
+            btree.Add(12);
+            btree.Delete(11);
+            Assert.AreEqual(false, btree.Contains(11));
+            Assert.AreEqual(btree.Count, 6);
+        }
+        [TestMethod]
+        public void DeleteFromRootIsCorrect()
+        {
+            Btree<int> btree = new Btree<int>(2);
+            btree.Add(1);
+            btree.Add(7);
+            btree.Add(9);
+            btree.Delete(7);
+            Assert.AreEqual(false, btree.Contains(7));
+            Assert.AreEqual(btree.Count, 2);
+        }
     }
 
 }

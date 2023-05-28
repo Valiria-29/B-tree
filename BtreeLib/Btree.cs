@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -31,9 +32,9 @@ namespace BtreeLib
 
         private (Page<T> , int ) Find(T findKey)
         {
-            if (_root==null)
+            if (_root.KeyCount == 0) 
             {
-                throw new Exception(); //искллючение что дерево пустое
+                throw new Exception("Empty b-tree"); //искллючение что дерево пустое
             }
             var currentPage = _root;
             int i = 0;
@@ -239,8 +240,8 @@ namespace BtreeLib
             var (page, index) = Find(deleteKey);
             if (page.Equals(default(Page<T>)))
             {
+                throw new Exception("This key is no in b-tree");
                 //исключение что нет такого элемента в дереве
-                return;
             }
             else //если элемент в дереве нашелся, то проверяем где именно он находится
             {
@@ -253,7 +254,6 @@ namespace BtreeLib
                 {
                     DeleteFromInternalNode(deleteKey , page , index);
                 }
-               
             }
         }
 
@@ -471,55 +471,59 @@ namespace BtreeLib
             var leftNeighborPage = page._child[index];
             var rightNeighborPage = page._child[index+1];
             var substituteKey = default(T);
-            if (leftNeighborPage != default(Page<T>))
+            bool KeyIsDelete = false;
+            if (leftNeighborPage != default(Page<T>) && leftNeighborPage.KeyCount > MinTreeDegree - 1)//можно найти заместителя в левом поддереве
             {
-                if (leftNeighborPage.KeyCount > MinTreeDegree-1) //можно найти заместителя в левом поддереве
-                {
-                    substituteKey= FindSubstituteKeyInLeftSubTree(leftNeighborPage, deleteKey, index);//метод нахождения самого правого элемента в поддереве
-                    page[index] = substituteKey;
-                }
+                substituteKey = FindSubstituteKeyInLeftSubTree(leftNeighborPage, deleteKey, index);//метод нахождения самого правого элемента в поддереве
+                page[index] = substituteKey;
+                KeyIsDelete = true;
             }
-            if (rightNeighborPage != default(Page<T>))
+            if (rightNeighborPage != default(Page<T>) && rightNeighborPage.KeyCount > MinTreeDegree - 1 && !KeyIsDelete)// можно найти заместителя в правом поддереве
             {
-                if (rightNeighborPage.KeyCount > MinTreeDegree-1)// можно найти заместителя в правом поддереве
-                {
-                     substituteKey= FindSubstituteKeyInRightSubTree(rightNeighborPage, deleteKey, index);//метод нахождения самого левого элемента в поддереве
-                    page[index] = substituteKey;
-                }
+                substituteKey= FindSubstituteKeyInRightSubTree(rightNeighborPage, deleteKey, index);//метод нахождения самого левого элемента в поддереве
+                page[index] = substituteKey;
+                KeyIsDelete = true;
             }
-            if (leftNeighborPage == default(Page<T>) && rightNeighborPage == default(Page<T>))
+            if (leftNeighborPage == default(Page<T>) && rightNeighborPage == default(Page<T>) && !KeyIsDelete)
             {
                 //метод обычного удаления элемента из страницы (у него нет дочерних узлов)
                 page[index]=default(T);
                 page.KeyCount--;
+                Count--;
+                KeyIsDelete = true;
                 
             }
-            if (substituteKey.CompareTo(default(T))==0) //нужен метод объединения страниц (эти страницы листовые, иначе они бы имели более, чем t-1 элемент)
+            if (!KeyIsDelete && substituteKey.CompareTo(default(T)) == 0) //нужен метод объединения страниц (эти страницы листовые, иначе они бы имели более, чем t-1 элемент)
             {
-                UnionTwoPage(leftNeighborPage, rightNeighborPage, page, index);
+                UnionTwoPage(leftNeighborPage, rightNeighborPage, page, index, page._parent);
             }
         }
 
         private T FindSubstituteKeyInLeftSubTree (Page<T> leftNeighborPage, T deleteKey, int index) 
         {
-            //переходим на самую правую подстраницу, пока не дойдем до листа
+            //переходим на самую левую подстраницу, пока не дойдем до листа
             var currentPage = leftNeighborPage;
             T currentSubstituteKey;
-            while (currentPage._child[currentPage.KeyCount].IsLeaf != true)
+            if (currentPage.IsLeaf != true)
             {
-                currentPage = currentPage._child[currentPage.KeyCount];
+                while (currentPage._child[currentPage.KeyCount].IsLeaf != true)
+                {
+                    currentPage = currentPage._child[currentPage.KeyCount];
+                }
             }
             //как только дошли до листа выбираем самый правый элемент
             currentSubstituteKey = currentPage[currentPage.KeyCount - 1];
             // удаляем его
             currentPage[currentPage.KeyCount - 1] = default(T);
             currentPage.KeyCount--;
+            Count--;
+            
             return currentSubstituteKey;
 
         }
         private T FindSubstituteKeyInRightSubTree(Page<T>  rightNeighborPage, T deleteKey, int index)
         {
-            //переходим на самую лквую подстраницу, пока не дойдем до листа
+            //переходим на самую правую подстраницу, пока не дойдем до листа
             var currentPage = rightNeighborPage;
             T currentSubstituteKey;
             if (currentPage.IsLeaf != true)
@@ -538,9 +542,10 @@ namespace BtreeLib
             }
             currentPage[currentPage.KeyCount-1] = default(T);
             currentPage.KeyCount--;
+            Count--;
             return currentSubstituteKey;
         }
-        private void UnionTwoPage (Page<T> leftNeighborPage, Page<T> rightNeighborPage , Page<T> deleteKeyPage, int deleteKeyIndex)
+        private void UnionTwoPage (Page<T> leftNeighborPage, Page<T> rightNeighborPage , Page<T> deleteKeyPage, int deleteKeyIndex, Page<T> parentPage)
         {
             //перенесем из правой все элементы в левую
             for ( int i=0; i< rightNeighborPage.KeyCount; i++)
@@ -559,6 +564,36 @@ namespace BtreeLib
             deleteKeyPage[deleteKeyPage.KeyCount-1] = default;
             deleteKeyPage._child[deleteKeyPage.KeyCount] = default;
             deleteKeyPage.KeyCount--;
+            Count--;
+            //Если у родителя не осталось элементов, нужно поднять наверх страницу
+            if (deleteKeyPage.KeyCount == 0)
+            {
+                //если обнулился корень
+                if (deleteKeyPage._parent == null)
+                {
+                    _root = leftNeighborPage;
+                    _root._child = leftNeighborPage._child;
+                    _root.IsLeaf = leftNeighborPage.IsLeaf;
+                    _root._parent = null;
+                }
+                else
+                {
+                    //находим на каком месте среди детей родителя стояла page
+                    int index = 0;
+                    for( int i=0; i< parentPage._child.Length;i++)
+                    {
+                        if (parentPage._child[i]==deleteKeyPage)
+                        {
+                            index = i;
+                            break;
+                        }
+                    }
+                    parentPage._child[index] = leftNeighborPage;
+                    leftNeighborPage._parent = parentPage;
+                    parentPage._child[index].IsLeaf= leftNeighborPage.IsLeaf;
+                    parentPage._child[index]._child = leftNeighborPage._child;
+                }
+            }
 
         }
     }
