@@ -11,7 +11,7 @@ namespace BtreeLib
         public int KeyCount;
         public bool IsLeaf;
         public T[] _keys;
-        public Page<T>[] _child { get;  set; }
+        public Page<T>[] _child;
         public Page<T> _parent;
 
         public Page(bool isLeaf, int t)
@@ -22,10 +22,7 @@ namespace BtreeLib
             _child = new Page<T>[2 * t];
            
         }
-
-
         public T this[int index] { get => _keys[index]; set => _keys[index] = value; }
-
     }
    
 }

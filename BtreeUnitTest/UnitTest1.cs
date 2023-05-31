@@ -18,7 +18,7 @@ namespace BtreeUnitTest
         public void CountZeroAfterCreate()
         {
             Btree<int> btree = new Btree<int>(3);
-            Assert.AreEqual(0, btree.Count);
+            Assert.AreEqual(0, btree.CountOfKeys);
         }
 
         [TestMethod]
@@ -36,7 +36,7 @@ namespace BtreeUnitTest
         {
             Btree<int> btree = new Btree<int>(3);
             btree.Add(1);
-            Assert.AreEqual(1, btree.Count);
+            Assert.AreEqual(1, btree.CountOfKeys);
         }
         [TestMethod]
         public void AfterAddItemIsExictInBtree()
@@ -56,7 +56,7 @@ namespace BtreeUnitTest
             btree.Add(1);
             btree.Add(2);
             btree.Add(3);
-            Assert.AreEqual(3, btree.Count);
+            Assert.AreEqual(3, btree.CountOfKeys);
         }
         [TestMethod]
         public void SplitPagesHasCorrectKeys()
@@ -78,7 +78,7 @@ namespace BtreeUnitTest
             {
                 btree.Add(i);
             }
-            Assert.AreEqual(btree.Count, 10);
+            Assert.AreEqual(btree.CountOfKeys, 10);
         }
     }
     [TestClass]
@@ -93,7 +93,7 @@ namespace BtreeUnitTest
             btree.Add(3);
             btree.Delete(1);
             Assert.AreEqual(false, btree.Contains(1));
-            Assert.AreEqual(btree.Count, 2);
+            Assert.AreEqual(btree.CountOfKeys, 2);
         }
         [TestMethod]
         public void DeleteFromRightmostLeafIsCorrect()
@@ -104,7 +104,7 @@ namespace BtreeUnitTest
             btree.Add(3);
             btree.Delete(3);
             Assert.AreEqual(false, btree.Contains(3));
-            Assert.AreEqual(btree.Count, 2);
+            Assert.AreEqual(btree.CountOfKeys, 2);
         }
         [TestMethod]
         public void DeleteFromMiddleLeafIsCorrect()
@@ -117,7 +117,7 @@ namespace BtreeUnitTest
             btree.Add(3);
             btree.Delete(3);
             Assert.AreEqual(false, btree.Contains(3));
-            Assert.AreEqual(btree.Count, 4);
+            Assert.AreEqual(btree.CountOfKeys, 4);
         }
         [TestMethod]
         public void BorrowFromRightNeighborIsCorrect()
@@ -131,7 +131,7 @@ namespace BtreeUnitTest
             btree.Add(7);
             btree.Delete(3);
             Assert.AreEqual(false, btree.Contains(3));
-            Assert.AreEqual(btree.Count, 5);
+            Assert.AreEqual(btree.CountOfKeys, 5);
         }
         [TestMethod]
         public void BorrowFromLeftNeighborIsCorrect()
@@ -145,7 +145,7 @@ namespace BtreeUnitTest
             btree.Add(2);
             btree.Delete(5);
             Assert.AreEqual(false, btree.Contains(5));
-            Assert.AreEqual(btree.Count, 5);
+            Assert.AreEqual(btree.CountOfKeys, 5);
         }
         [TestMethod]
         public void UniteWhithRightNeighborsIsCorrect()
@@ -158,7 +158,7 @@ namespace BtreeUnitTest
             btree.Add(2);
             btree.Delete(3);
             Assert.AreEqual(false, btree.Contains(3));
-            Assert.AreEqual(btree.Count, 4);
+            Assert.AreEqual(btree.CountOfKeys, 4);
         }
         [TestMethod]
         public void UniteWhithLeftNeighborsIsCorrect()
@@ -171,7 +171,7 @@ namespace BtreeUnitTest
             btree.Add(2);
             btree.Delete(9);
             Assert.AreEqual(false, btree.Contains(9));
-            Assert.AreEqual(btree.Count, 4);
+            Assert.AreEqual(btree.CountOfKeys, 4);
         }
         [TestMethod]
         public void SimpleDeleteIsCorrect()
@@ -183,7 +183,7 @@ namespace BtreeUnitTest
             btree.Add(3);
             btree.Delete(3);
             Assert.AreEqual(false, btree.Contains(3));
-            Assert.AreEqual(btree.Count, 3);
+            Assert.AreEqual(btree.CountOfKeys, 3);
         }
         [TestMethod]
         public void HardDeleteIsCorrect()
@@ -203,7 +203,7 @@ namespace BtreeUnitTest
             Assert.AreEqual(false, btree.Contains(9));
             Assert.AreEqual(false, btree.Contains(1));
             Assert.AreEqual(false, btree.Contains(7));
-            Assert.AreEqual(btree.Count, 2);
+            Assert.AreEqual(btree.CountOfKeys, 2);
         }
         [TestMethod]
         public void Hard2DeleteIsCorrect()
@@ -222,7 +222,7 @@ namespace BtreeUnitTest
             Assert.AreEqual(false, btree.Contains(5));
             Assert.AreEqual(false, btree.Contains(6));
             Assert.AreEqual(false, btree.Contains(9));
-            Assert.AreEqual(btree.Count, 4);
+            Assert.AreEqual(btree.CountOfKeys, 4);
         }
         [ExpectedException(typeof(Exception))]
         public void DeleteFromRootToEmptyTree()
@@ -253,7 +253,7 @@ namespace BtreeUnitTest
             btree.Add(10);
             btree.Delete(11);
             Assert.AreEqual(false, btree.Contains(11));
-            Assert.AreEqual(btree.Count, 7);
+            Assert.AreEqual(btree.CountOfKeys, 7);
 
         }
         [TestMethod]
@@ -270,7 +270,7 @@ namespace BtreeUnitTest
             btree.Add(13);
             btree.Delete(11);
             Assert.AreEqual(false, btree.Contains(11));
-            Assert.AreEqual(btree.Count, 7);
+            Assert.AreEqual(btree.CountOfKeys, 7);
         }
         [TestMethod]
         public void UnionTwoPageIsCorrect()
@@ -285,7 +285,7 @@ namespace BtreeUnitTest
             btree.Add(12);
             btree.Delete(11);
             Assert.AreEqual(false, btree.Contains(11));
-            Assert.AreEqual(btree.Count, 6);
+            Assert.AreEqual(btree.CountOfKeys, 6);
         }
         [TestMethod]
         public void DeleteFromRootIsCorrect()
@@ -296,9 +296,8 @@ namespace BtreeUnitTest
             btree.Add(9);
             btree.Delete(7);
             Assert.AreEqual(false, btree.Contains(7));
-            Assert.AreEqual(btree.Count, 2);
+            Assert.AreEqual(btree.CountOfKeys, 2);
         }
     }
-
 }
 

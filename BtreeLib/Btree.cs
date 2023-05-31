@@ -13,7 +13,7 @@ namespace BtreeLib
     {
         public int MinTreeDegree;
         private Page<T> _root;
-        public int Count;
+        public int CountOfKeys;
 
         IComparer <T> _comparer;
         public Btree(int minTreeDegree)
@@ -44,7 +44,7 @@ namespace BtreeLib
                 {
                     i++;
                 }
-                if ((!currentPage[i].Equals(default(T))) && (_comparer.Compare(findKey ,currentPage[i])==0)) // если сразу нашли ключ, то все хорошо
+                if ((_comparer.Compare(currentPage[i], default(T))) != 0 && (_comparer.Compare(findKey ,currentPage[i])==0)) // если сразу нашли ключ, то все хорошо
                 {
                     return (currentPage, i);
                 }
@@ -81,14 +81,12 @@ namespace BtreeLib
         }
         public void Add(T addKey)
         {
-            
             var currentPage = _root;
             int i = 0;
             //нашли нужное место для вставки или для перехода на нужную дочернюю страницу
             while (i <= currentPage.KeyCount)
             {
-
-                while (!currentPage[i].Equals(default(T)) && (_comparer.Compare(currentPage[i], addKey) < 0))
+                while (_comparer.Compare(currentPage[i],default(T))!=0 && (_comparer.Compare(currentPage[i], addKey) < 0))
                 {
                     i++;
                 }
@@ -101,7 +99,7 @@ namespace BtreeLib
                     }
                     currentPage[i] = addKey;
                     currentPage.KeyCount++;
-                    Count++;
+                    CountOfKeys++;
                     break;
                 }
                 //иначе переходим на дочернюю страницу и начинаем поиск на ней
@@ -111,13 +109,33 @@ namespace BtreeLib
                     currentPage = currentPage._child[i];
                     currentPage._parent = parentreference;
                     i = 0;
-
                 }
             }
             //после добавления элемента проверяем страницу на заполненность
             if (currentPage.KeyCount == 2 * MinTreeDegree - 1)
             {
                 SplitPage(currentPage);
+            }
+        }
+        public void Delete(T deleteKey)
+        {
+            var (page, index) = Find(deleteKey);
+            if (page.Equals(default(Page<T>)))
+            {
+                throw new Exception("This key is no in b-tree");
+                //исключение что нет такого элемента в дереве
+            }
+            else //если элемент в дереве нашелся, то проверяем где именно он находится
+            {
+
+                if (page.IsLeaf)
+                {
+                    DeleteFromLeaf(page, index);//метод удаления из листа
+                }
+                else
+                {
+                    DeleteFromInternalNode(deleteKey, page, index); //метод удаления из внутреннего узла
+                }
             }
         }
 
@@ -235,27 +253,7 @@ namespace BtreeLib
         //}
         #endregion
          
-        public void Delete ( T deleteKey)
-        {
-            var (page, index) = Find(deleteKey);
-            if (page.Equals(default(Page<T>)))
-            {
-                throw new Exception("This key is no in b-tree");
-                //исключение что нет такого элемента в дереве
-            }
-            else //если элемент в дереве нашелся, то проверяем где именно он находится
-            {
-               
-                if (page.IsLeaf)
-                {
-                    DeleteFromLeaf(page, index );
-                }
-                else
-                {
-                    DeleteFromInternalNode(deleteKey , page , index);
-                }
-            }
-        }
+        
 
         #region [DeleteFromLeaf]
         //метод удаления элемента с листа
@@ -264,7 +262,7 @@ namespace BtreeLib
             if (page._parent == null) //если удаляем из корня
             {
                 ShiftKey(page, index);
-                Count--;
+                CountOfKeys--;
                 page.KeyCount--;
                 return;
             }
@@ -272,7 +270,7 @@ namespace BtreeLib
             {
                 page[index]= default(T);
                 ShiftKey(page, index);
-                Count--;
+                CountOfKeys--;
                 page.KeyCount--;
                 return;
             }
@@ -280,12 +278,10 @@ namespace BtreeLib
             {
                 var deleteKey = page[index];
                 ShiftKey(page, index); //перенесли все элементы после удаляемого на один влево
-                Count--;
+                CountOfKeys--;
                 page.KeyCount--;
                 BorrowFromNeighbor(page,deleteKey);
-
             }
-
         }
         #endregion
 
@@ -353,7 +349,6 @@ namespace BtreeLib
             {
                 UniteWhithLeftNeighbors(page, leftNeighborPage, parentPage, parentIndex);
             }    
-
         }
         #endregion
 
@@ -457,12 +452,8 @@ namespace BtreeLib
                     _root._child = leftNeighborPage._child;
                     _root.IsLeaf = leftNeighborPage.IsLeaf;
                     _root._parent=null;
-
                 }
             }
-
-
-
         }
         #endregion
 
@@ -489,11 +480,11 @@ namespace BtreeLib
                 //метод обычного удаления элемента из страницы (у него нет дочерних узлов)
                 page[index]=default(T);
                 page.KeyCount--;
-                Count--;
+                CountOfKeys--;
                 KeyIsDelete = true;
                 
             }
-            if (!KeyIsDelete && substituteKey.CompareTo(default(T)) == 0) //нужен метод объединения страниц (эти страницы листовые, иначе они бы имели более, чем t-1 элемент)
+            if (!KeyIsDelete && _comparer.Compare(substituteKey, default(T)) == 0) //нужен метод объединения страниц (эти страницы листовые, иначе они бы имели более, чем t-1 элемент)
             {
                 UnionTwoPage(leftNeighborPage, rightNeighborPage, page, index, page._parent);
             }
@@ -516,7 +507,7 @@ namespace BtreeLib
             // удаляем его
             currentPage[currentPage.KeyCount - 1] = default(T);
             currentPage.KeyCount--;
-            Count--;
+            CountOfKeys--;
             
             return currentSubstituteKey;
 
@@ -542,7 +533,7 @@ namespace BtreeLib
             }
             currentPage[currentPage.KeyCount-1] = default(T);
             currentPage.KeyCount--;
-            Count--;
+            CountOfKeys--;
             return currentSubstituteKey;
         }
         private void UnionTwoPage (Page<T> leftNeighborPage, Page<T> rightNeighborPage , Page<T> deleteKeyPage, int deleteKeyIndex, Page<T> parentPage)
@@ -564,7 +555,7 @@ namespace BtreeLib
             deleteKeyPage[deleteKeyPage.KeyCount-1] = default;
             deleteKeyPage._child[deleteKeyPage.KeyCount] = default;
             deleteKeyPage.KeyCount--;
-            Count--;
+            CountOfKeys--;
             //Если у родителя не осталось элементов, нужно поднять наверх страницу
             if (deleteKeyPage.KeyCount == 0)
             {
